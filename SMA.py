@@ -1,17 +1,14 @@
-import numpy as np 
-import pandas as pd 
 import torch
-import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np 
 import math
 from torch.autograd import Variable
-from torch import optim, cuda
+from torch import cuda
+import scipy.stats as st
 
-def gkern(kernlen=21, nsig=3):
+def gkern(kernlen = 3, nsig = 1):
   """Returns a 2D Gaussian kernel array."""
-  import scipy.stats as st
-
   x = np.linspace(-nsig, nsig, kernlen)
   kern1d = st.norm.pdf(-1,x)
   kern2d = st.norm.pdf(-1,x)
@@ -19,7 +16,7 @@ def gkern(kernlen=21, nsig=3):
   kernel = kernel_raw / kernel_raw.sum()
   return kernel
 
-def blur(tensor_image,epsilon,stack_kerne):        
+def blur(tensor_image, epsilon, stack_kerne):        
 
 	min_batch=tensor_image.shape[0]        
 	channels=tensor_image.shape[1]        
@@ -66,14 +63,14 @@ class SMA(object):
                 loss = a1 * self.loss_fn(output_perturbed, gt) - a2 * self.loss_fn(output_perturbed, output_perturbed_last)
             loss.backward()
             X_pert_grad=X_pert.grad.detach().sign()
-            pert = X_pert.grad.detach().sign()*epsilon
+            pert = X_pert.grad.detach().sign() * self.epsilon
             
             kernel = gkern(3, 1).astype(np.float32)
             stack_kernel = np.stack([kernel, kernel, kernel]).swapaxes(2, 0)
             stack_kernel = np.expand_dims(stack_kernel, 3)
 
             gt1=X_pert_grad.detach()
-            gt1=blur(gt1, epsilon, stack_kernel)
+            gt1=blur(gt1, self.epsilon, stack_kernel)
             gt1=Variable(torch.tensor(X_pert + gt1), volatile=True).cuda()
             gt1.requires_grad_(False)
             output_perturbed_last = model(gt1)
