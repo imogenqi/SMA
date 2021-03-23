@@ -13,4 +13,4 @@ If you find this repo useful for your research, please consider citing the paper
 ```
 
 
-![image](https://github.com/imogenqi/SMA/blob/main/sma.png)
+![image](https://github.com/imogenqi/SMA/blob/main/SMIA.png)
